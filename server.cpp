@@ -232,9 +232,13 @@ void serve_local_file(int client_socket, const std::string path) {
     //                   "Content-Length: \r\n"
     //                   "\r\n";
 
-    // char response[strlen(response_header) + strlen(char_file_contents) + 1];
+    // char response[strlen(response_header) + sizeof file_contents.length() + strlen(char_file_contents) + 1];
+    // char response[10000];
+
+    std::string status_code = "200 OK";
+
     char response[10000];
-    snprintf( response, sizeof response, "HTTP/1.0 200 OK\r\nContent-Type: %s; charset=UTF-8\r\nContent-Length: %lu\r\n\r\n%s", file_type.c_str(), file_contents.length(), file_contents.c_str() );
+    snprintf( response, sizeof response, "HTTP/1.0 %s\r\nContent-Type: %s; charset=UTF-8\r\nContent-Length: %lu\r\n\r\n%s", status_code.c_str(), file_type.c_str(), file_contents.length(), file_contents.c_str() );
 
     // printf(response);    
 
