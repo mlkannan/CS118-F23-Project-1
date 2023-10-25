@@ -9,6 +9,9 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include <string>
+#include <regex>
+
 /**
  * Project 1 starter code
  * All parts needed to be changed/added are marked with TODO
@@ -35,8 +38,8 @@ void parse_args(int argc, char *argv[], struct server_app *app);
 
 // The following functions need to be updated
 void handle_request(struct server_app *app, int client_socket);
-void serve_local_file(int client_socket, const char *path);
-void proxy_remote_file(struct server_app *app, int client_socket, const char *path);
+void serve_local_file(int client_socket, const std::string path);
+void proxy_remote_file(struct server_app *app, int client_socket, const std::string path);
 
 // The main function is provided and no change is needed
 int main(int argc, char *argv[])
@@ -139,12 +142,34 @@ void handle_request(struct server_app *app, int client_socket) {
 
     buffer[bytes_read] = '\0';
     // copy buffer to a new string
-    char *request = malloc(strlen(buffer) + 1);
+    char *request = (char*)malloc(strlen(buffer) + 1);
     strcpy(request, buffer);
+
+    printf("START OF REQUEST\n");
+    printf(request);
+    printf("END OF REQUEST\n");
 
     // TODO: Parse the header and extract essential fields, e.g. file name
     // Hint: if the requested path is "/" (root), default to index.html
-    char file_name[] = "index.html";
+
+    std::string str_request(request);
+
+    std::string::size_type path_start = str_request.find("GET /");
+    std::string::size_type path_end = str_request.find(" HTTP");
+    std::string header_path = str_request.substr(path_start + 5, path_end - 5);
+
+    // header_path = 
+    // header_filename = 
+    // filepath file extension
+
+
+    std::string file_name = "";
+    if ( header_path.compare("/") == 0)
+        file_name = "index.html";
+    else
+        file_name = header_path.substr(1, header_path.size() - 1);
+
+    printf("Header file: %\n", header_path.c_str());
 
     // TODO: Implement proxy and call the function under condition
     // specified in the spec
@@ -155,7 +180,7 @@ void handle_request(struct server_app *app, int client_socket) {
     //}
 }
 
-void serve_local_file(int client_socket, const char *path) {
+void serve_local_file(int client_socket, const std::string path) {
     // TODO: Properly implement serving of local files
     // The following code returns a dummy response for all requests
     // but it should give you a rough idea about what a proper response looks like
