@@ -208,6 +208,8 @@ void serve_local_file(int client_socket, const std::string path) {
 
     path_file.close();
 
+    file_contents.pop_back(); // removes final newline character from file contents
+
     std::string::size_type filetype_start = path.find(".");
     std::string file_type = path.substr(filetype_start + 1, path.size());
     // printf("%s", file_type.c_str());
@@ -247,8 +249,6 @@ void serve_local_file(int client_socket, const std::string path) {
 
 void proxy_remote_file(struct server_app *app, int client_socket, const char *request) {
     // TODO: Implement proxy request and replace the following code
-
-
 
     // What's needed:
     // * Connect to remote server (app->remote_server/app->remote_port)
