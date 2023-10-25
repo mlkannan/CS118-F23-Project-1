@@ -11,6 +11,8 @@
 
 #include <string>
 #include <regex>
+#include <fstream>
+#include <iostream>
 
 /**
  * Project 1 starter code
@@ -162,14 +164,13 @@ void handle_request(struct server_app *app, int client_socket) {
     // header_filename = 
     // filepath file extension
 
-
     std::string file_name = "";
     if ( header_path.compare("/") == 0)
         file_name = "index.html";
     else
-        file_name = header_path.substr(1, header_path.size() - 1);
+        file_name = header_path.substr(0, header_path.size());
 
-    printf("Header file: %\n", header_path.c_str());
+    printf("Header file: %s\n", header_path.c_str());
 
     // TODO: Implement proxy and call the function under condition
     // specified in the spec
@@ -192,17 +193,46 @@ void serve_local_file(int client_socket, const std::string path) {
     // (When the requested file does not exist):
     // * Generate a correct response
 
-    char response[] = "HTTP/1.0 200 OK\r\n"
+    std::string file_contents;
+    std::string temp_contents; 
+
+    std::ifstream path_file;
+
+    printf(path.c_str());
+    path_file.open( path );
+
+    while(!path_file.eof()) {
+        getline(path_file, temp_contents);
+        file_contents += temp_contents + '\n';
+    }
+
+    path_file.close();
+
+    char char_file_contents[file_contents.size() + 1];
+
+    for (int x = 0; x < sizeof(char_file_contents); x++) { 
+        char_file_contents[x] = file_contents[x]; 
+    } 
+
+    char response_header[] = "HTTP/1.0 200 OK\r\n"
                       "Content-Type: text/plain; charset=UTF-8\r\n"
-                      "Content-Length: 15\r\n"
-                      "\r\n"
-                      "Sample response";
+                      "Content-Length: \r\n"
+                      "\r\n";
+
+    // char response[strlen(response_header) + strlen(char_file_contents) + 1];
+    char response[10000];
+    snprintf( response, sizeof response, "HTTP/1.0 200 OK\r\nContent-Type: html; charset=UTF-8\r\nContent-Length: %d\r\n\r\n%s", strlen(char_file_contents), char_file_contents );
+
+    printf(response);    
 
     send(client_socket, response, strlen(response), 0);
 }
 
 void proxy_remote_file(struct server_app *app, int client_socket, const char *request) {
     // TODO: Implement proxy request and replace the following code
+
+
+
     // What's needed:
     // * Connect to remote server (app->remote_server/app->remote_port)
     // * Forward the original request to the remote server
