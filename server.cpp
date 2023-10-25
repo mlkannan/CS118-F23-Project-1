@@ -147,9 +147,9 @@ void handle_request(struct server_app *app, int client_socket) {
     char *request = (char*)malloc(strlen(buffer) + 1);
     strcpy(request, buffer);
 
-    printf("START OF REQUEST\n");
-    printf(request);
-    printf("END OF REQUEST\n");
+    // printf("START OF REQUEST\n");
+    // printf(request);
+    // printf("END OF REQUEST\n");
 
     // TODO: Parse the header and extract essential fields, e.g. file name
     // Hint: if the requested path is "/" (root), default to index.html
@@ -170,7 +170,7 @@ void handle_request(struct server_app *app, int client_socket) {
     else
         file_name = header_path.substr(0, header_path.size());
 
-    printf("Header file: %s\n", header_path.c_str());
+    // printf("Header file: %s\n", header_path.c_str());
 
     // TODO: Implement proxy and call the function under condition
     // specified in the spec
@@ -198,7 +198,7 @@ void serve_local_file(int client_socket, const std::string path) {
 
     std::ifstream path_file;
 
-    printf(path.c_str());
+    // printf(path.c_str());
     path_file.open( path );
 
     while(!path_file.eof()) {
@@ -225,9 +225,9 @@ void serve_local_file(int client_socket, const std::string path) {
 
     // char response[strlen(response_header) + strlen(char_file_contents) + 1];
     char response[10000];
-    snprintf( response, sizeof response, "HTTP/1.0 200 OK\r\nContent-Type: %s; charset=UTF-8\r\nContent-Length: %d\r\n\r\n%s", file_type.c_str(), file_contents.length(), file_contents.c_str() );
+    snprintf( response, sizeof response, "HTTP/1.0 200 OK\r\nContent-Type: %s; charset=UTF-8\r\nContent-Length: %lu\r\n\r\n%s", file_type.c_str(), file_contents.length(), file_contents.c_str() );
 
-    printf(response);    
+    // printf(response);    
 
     send(client_socket, response, strlen(response), 0);
 }
