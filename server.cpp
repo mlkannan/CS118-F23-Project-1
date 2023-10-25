@@ -208,11 +208,15 @@ void serve_local_file(int client_socket, const std::string path) {
 
     path_file.close();
 
-    char char_file_contents[file_contents.size() + 1];
+    std::string::size_type filetype_start = path.find(".");
+    std::string file_type = path.substr(filetype_start + 1, path.size());
+    // printf("%s", file_type.c_str());
 
-    for (int x = 0; x < sizeof(char_file_contents); x++) { 
-        char_file_contents[x] = file_contents[x]; 
-    } 
+    // char char_file_contents[file_contents.size() + 1];
+
+    // for (int x = 0; x < sizeof(char_file_contents); x++) { 
+    //     char_file_contents[x] = file_contents[x]; 
+    // } 
 
     char response_header[] = "HTTP/1.0 200 OK\r\n"
                       "Content-Type: text/plain; charset=UTF-8\r\n"
@@ -221,7 +225,7 @@ void serve_local_file(int client_socket, const std::string path) {
 
     // char response[strlen(response_header) + strlen(char_file_contents) + 1];
     char response[10000];
-    snprintf( response, sizeof response, "HTTP/1.0 200 OK\r\nContent-Type: html; charset=UTF-8\r\nContent-Length: %d\r\n\r\n%s", strlen(char_file_contents), char_file_contents );
+    snprintf( response, sizeof response, "HTTP/1.0 200 OK\r\nContent-Type: %s; charset=UTF-8\r\nContent-Length: %d\r\n\r\n%s", file_type.c_str(), file_contents.length(), file_contents.c_str() );
 
     printf(response);    
 
