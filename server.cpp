@@ -222,8 +222,10 @@ void serve_local_file(int client_socket, const std::string path) {
         file_type = "text/plain";
     else if ( file_type.compare( "jpeg" ) == 0 | file_type.compare( "jpg" ) == 0 )
         file_type = "image/jpeg";
-    else
+    else if ( file_type.compare( "html" ) == 0 )
         file_type = "text/html";
+    else
+        file_type = "application/octet-stream";
 
     // char response_header[] = "HTTP/1.0 200 OK\r\n"
     //                   "Content-Type: text/plain; charset=UTF-8\r\n"
