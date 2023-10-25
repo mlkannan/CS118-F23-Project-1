@@ -218,10 +218,17 @@ void serve_local_file(int client_socket, const std::string path) {
     //     char_file_contents[x] = file_contents[x]; 
     // } 
 
-    char response_header[] = "HTTP/1.0 200 OK\r\n"
-                      "Content-Type: text/plain; charset=UTF-8\r\n"
-                      "Content-Length: \r\n"
-                      "\r\n";
+    if ( file_type.compare( "txt" ) == 0 )
+        file_type = "text/plain";
+    else if ( file_type.compare( "jpeg" ) == 0 | file_type.compare( "jpg" ) == 0 )
+        file_type = "image/jpeg";
+    else
+        file_type = "text/html";
+
+    // char response_header[] = "HTTP/1.0 200 OK\r\n"
+    //                   "Content-Type: text/plain; charset=UTF-8\r\n"
+    //                   "Content-Length: \r\n"
+    //                   "\r\n";
 
     // char response[strlen(response_header) + strlen(char_file_contents) + 1];
     char response[10000];
