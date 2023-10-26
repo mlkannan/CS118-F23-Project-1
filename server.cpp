@@ -194,7 +194,8 @@ void serve_local_file(int client_socket, const std::string path) {
     // * Generate a correct response
 
     //adjust for files named with space
-    std::string const encodedPath = std::regex_replace( path, std::regex( "\\%20" ), " " );
+    std::string const tempPath = std::regex_replace( path, std::regex( "\\%20" ), " " );
+    std::string const encodedPath = std::regex_replace( tempPath, std::regex( "\\%25" ), "%" );
 
     std::ifstream path_file(encodedPath, std::ios::binary | std::ios::ate);
 
