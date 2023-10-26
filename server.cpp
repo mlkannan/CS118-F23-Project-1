@@ -193,22 +193,18 @@ void serve_local_file(int client_socket, const std::string path) {
     // (When the requested file does not exist):
     // * Generate a correct response
 
-    std::string file_contents;
-    std::string temp_contents; 
+    //adjust for files named with space
+    std::string const encodedPath = std::regex_replace( path, std::regex( "\\%20" ), " " );
 
-    std::ifstream path_file;
+    std::ifstream path_file(encodedPath, std::ios::binary | std::ios::ate);
 
-    // printf(path.c_str());
-    path_file.open( path );
-
-    while(!path_file.eof()) {
-        getline(path_file, temp_contents);
-        file_contents += temp_contents + '\n';
+    if (!path_file.is_open()) {
+        std::cerr << "Error: Could not open file: " << encodedPath << std::endl;
     }
 
-    path_file.close();
-
-    file_contents.pop_back(); // removes final newline character from file contents
+    path_file.seekg(0, std::ios::end);
+    std::size_t file_size = path_file.tellg();
+    path_file.seekg(0, std::ios::beg);
 
     std::string::size_type filetype_start = path.find(".");
     std::string file_type = path.substr(filetype_start + 1, path.size());
@@ -238,13 +234,23 @@ void serve_local_file(int client_socket, const std::string path) {
     // char response[10000];
 
     std::string status_code = "200 OK";
+    std::string status_line = "HTTP/1.1 " + status_code + "\r\n";
+    std::string content_length_str = "Content-Length: " + std::to_string(file_size) + "\r\n";
+    std::string content_type_str = "Content-Type: " + file_type + "\r\n";
+    
+    std::string response_headers = status_line + content_length_str + content_type_str + "\r\n";;
 
-    char response[10000];
-    snprintf( response, sizeof response, "HTTP/1.0 %s\r\nContent-Type: %s; charset=UTF-8\r\nContent-Length: %lu\r\n\r\n%s", status_code.c_str(), file_type.c_str(), file_contents.length(), file_contents.c_str() );
+    printf(response_headers.c_str());  
 
-    // printf(response);    
+    send(client_socket, response_headers.c_str(), response_headers.length(), 0);
 
-    send(client_socket, response, strlen(response), 0);
+    char buffer[BUFFER_SIZE];
+    while (!path_file.eof()) {
+        path_file.read(buffer, sizeof(buffer));
+        send(client_socket, buffer, path_file.gcount(), 0);
+    }
+
+    path_file.close();
 }
 
 void proxy_remote_file(struct server_app *app, int client_socket, const char *request) {
