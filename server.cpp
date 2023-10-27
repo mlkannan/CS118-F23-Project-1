@@ -324,10 +324,27 @@ void proxy_remote_file(struct server_app *app, int client_socket, const std::str
     close(server_socket);
 
     // * Pass the response from remote server back
+
+
+    //HTTP HEADER OK BUT NEED TO FIX SENDING CONTENT
+    std::string status_code = "200 OK";
+    std:: string file_type = "application/octet-stream";
+    std::string status_line = "HTTP/1.1 " + status_code + "\r\n";
+    std::string content_length_str = "Content-Length: " + std::to_string(sizeof(buffer)) + "\r\n";
+    std::string content_type_str = "Content-Type: " + file_type + "\r\n";
+    
+    std::string response_headers = status_line + content_length_str + content_type_str + "\r\n";;
+
+    printf(response_headers.c_str());  
+
+    send(client_socket, response_headers.c_str(), response_headers.length(), 0);
+    send(client_socket, buffer, sizeof(buffer), 0);
+    //HTTP HEADER OK BUT NEED TO FIX SENDING CONTENT
+
+
     // Bonus:
     // * When connection to the remote server fail, properly generate
     // HTTP 502 "Bad Gateway" response
 
-    char response[] = "HTTP/1.0 501 Not Implemented\r\n\r\n";
-    send(client_socket, response, strlen(response), 0);
+   // char response[] = "HTTP/1.0 501 Not Implemented\r\n\r\n";
 }
