@@ -272,6 +272,7 @@ void proxy_remote_file(struct server_app *app, int client_socket, const std::str
     int server_socket, remote_socket;
     struct sockaddr_in server_addr, client_addr, remote_addr;
 
+    printf("Begin reverse proxy process\n");
     // Step 1: Open socket()
     server_socket = socket(PF_INET, SOCK_STREAM, 0);
     if (server_socket == -1) {
@@ -279,12 +280,18 @@ void proxy_remote_file(struct server_app *app, int client_socket, const std::str
         exit(EXIT_FAILURE);
     }
 
+    //printf(server_socket);
+
+    printf("Socket successfully created\n");
+
     remote_addr.sin_family = AF_INET;
-    remote_addr.sin_addr.s_addr = ((in_addr_t)(size_t) app->remote_host);
+    remote_addr.sin_addr = *((struct in_addr*) app->remote_host);
+    // remote_addr.sin_addr = *((struct in_addr*) strdup(DEFAULT_REMOTE_HOST));
     remote_addr.sin_port = htons(app->remote_port);
     memset(remote_addr.sin_zero, '\0', sizeof remote_addr.sin_zero);
 
-    // Step 2: connect()
+    printf("Starting connection to %s:%d\n", inet_ntoa(remote_addr.sin_addr), ntohs(remote_addr.sin_port));
+
     if(connect(server_socket, (struct sockaddr*) &remote_addr, sizeof(struct sockaddr)) == -1) {
         // perror (“connect”);
         printf("i frew up :(");
@@ -295,8 +302,9 @@ void proxy_remote_file(struct server_app *app, int client_socket, const std::str
     // * Forward the original request to the remote server
 
     char buffer[BUFFER_SIZE];
-    strcpy(buffer, request);
+    strcpy(buffer, request.c_str());
     write(server_socket, buffer, sizeof buffer);
+    printf("it has been written");
     // char buffer[strlen(request)];
     // char currbyte*;
     // while (&currbyte != '\0') {
