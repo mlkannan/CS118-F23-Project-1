@@ -174,11 +174,14 @@ void handle_request(struct server_app *app, int client_socket) {
 
     // TODO: Implement proxy and call the function under condition
     // specified in the spec
-    // if (need_proxy(...)) {
-    //    proxy_remote_file(app, client_socket, file_name);
-    // } else {
+    std::string::size_type filetype_start = file_name.find(".");
+    std::string file_type = file_name.substr(filetype_start + 1, file_name.size());
+
+    if (file_type.compare( "ts" ) == 0) {
+        proxy_remote_file(app, client_socket, file_name);
+    } else {
     serve_local_file(client_socket, file_name);
-    //}
+    }
 }
 
 void serve_local_file(int client_socket, const std::string path) {
@@ -260,9 +263,9 @@ void serve_local_file(int client_socket, const std::string path) {
     path_file.close();
 }
 
-void proxy_remote_file(struct server_app *app, int client_socket, const char *request) {
+void proxy_remote_file(struct server_app *app, int client_socket, const std::string request) {
     // TODO: Implement proxy request and replace the following code
-
+    
     // What's needed:
     // * Connect to remote server (app->remote_server/app->remote_port)
 
