@@ -285,10 +285,15 @@ void proxy_remote_file(struct server_app *app, int client_socket, const std::str
     printf("Socket successfully created\n");
 
     remote_addr.sin_family = AF_INET;
-    remote_addr.sin_addr = *((struct in_addr*) app->remote_host);
+    ///remote_addr.sin_addr = *((struct in_addr*) app->remote_host);
     // remote_addr.sin_addr = *((struct in_addr*) strdup(DEFAULT_REMOTE_HOST));
     remote_addr.sin_port = htons(app->remote_port);
     memset(remote_addr.sin_zero, '\0', sizeof remote_addr.sin_zero);
+
+    if (inet_pton(AF_INET, app->remote_host, &remote_addr.sin_addr) <= 0) {
+        printf("\nInvalid address/ Address not supported \n");
+        return;
+    }
 
     printf("Starting connection to %s:%d\n", inet_ntoa(remote_addr.sin_addr), ntohs(remote_addr.sin_port));
 
@@ -311,7 +316,11 @@ void proxy_remote_file(struct server_app *app, int client_socket, const std::str
     //     path_file.read(buffer, sizeof(buffer));
     //     send(client_socket, buffer, path_file.gcount(), 0);
     // }
+    printf("%d\n", sizeof buffer);
+    printf(buffer);
+    printf("\nbegin reading\n");
     read(server_socket, buffer, sizeof buffer);
+    printf("finished reading response\n");
     close(server_socket);
 
     // * Pass the response from remote server back
