@@ -265,7 +265,44 @@ void proxy_remote_file(struct server_app *app, int client_socket, const char *re
 
     // What's needed:
     // * Connect to remote server (app->remote_server/app->remote_port)
+
+    int server_socket, remote_socket;
+    struct sockaddr_in server_addr, client_addr, remote_addr;
+
+    // Step 1: Open socket()
+    server_socket = socket(PF_INET, SOCK_STREAM, 0);
+    if (server_socket == -1) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+
+    remote_addr.sin_family = AF_INET;
+    remote_addr.sin_addr.s_addr = ((in_addr_t)(size_t) app->remote_host);
+    remote_addr.sin_port = htons(app->remote_port);
+    memset(remote_addr.sin_zero, '\0', sizeof remote_addr.sin_zero);
+
+    // Step 2: connect()
+    if(connect(server_socket, (struct sockaddr*) &remote_addr, sizeof(struct sockaddr)) == -1) {
+        // perror (“connect”);
+        printf("i frew up :(");
+        exit (1);
+    }
+    printf("yeah we connected");
+    
     // * Forward the original request to the remote server
+
+    char buffer[BUFFER_SIZE];
+    strcpy(buffer, request);
+    write(server_socket, buffer, sizeof buffer);
+    // char buffer[strlen(request)];
+    // char currbyte*;
+    // while (&currbyte != '\0') {
+    //     path_file.read(buffer, sizeof(buffer));
+    //     send(client_socket, buffer, path_file.gcount(), 0);
+    // }
+    read(server_socket, buffer, sizeof buffer);
+    close(server_socket);
+
     // * Pass the response from remote server back
     // Bonus:
     // * When connection to the remote server fail, properly generate
