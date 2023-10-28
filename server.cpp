@@ -312,12 +312,13 @@ void proxy_remote_file(struct server_app *app, int client_socket, const std::str
     std::string const tempFilename1 = std::regex_replace( request, std::regex( " " ), "\\%20" );
     std::string const tempFilename2 = std::regex_replace( tempFilename1, std::regex( "%" ), "\\%25");
 
-    std::string request_with_header = "GET /" + tempFilename2 + " HTTP/1.1" + "\r\n\r\n";;
+    std::string request_with_header = "GET /" + tempFilename2 + " HTTP/1.0" + "\r\nConnection: keep-alive\r\n\r\n";;
 
-    char buffer[BUFFER_SIZE];
-    bzero(buffer, sizeof(buffer));
-    strcpy(buffer, request_with_header.c_str());
-    write(server_socket, buffer, sizeof buffer);
+    // char buffer[BUFFER_SIZE];
+    // bzero(buffer, sizeof(buffer));
+
+    //strcpy(buffer, request_with_header.c_str());
+    write(server_socket, request_with_header.c_str(), request_with_header.size());
     printf("it has been written");
     // char buffer[strlen(request)];
     // char currbyte*;
@@ -325,8 +326,8 @@ void proxy_remote_file(struct server_app *app, int client_socket, const std::str
     //     path_file.read(buffer, sizeof(buffer));
     //     send(client_socket, buffer, path_file.gcount(), 0);
     // }
-        printf("%d\n", sizeof buffer);
-        printf(buffer);
+        // printf("%d\n", sizeof buffer);
+        // printf(buffer);
 
     // * Pass the response from remote server back
 
@@ -352,18 +353,16 @@ void proxy_remote_file(struct server_app *app, int client_socket, const std::str
     // send(client_socket, response_headers.c_str(), response_headers.length(), 0);
     // send(client_socket, buffer, sizeof(buffer), 0);
 
+    char proxy_buffer[BUFFER_SIZE];
+    bzero(proxy_buffer, BUFFER_SIZE);
     int bytes_read;
-    bool first_time = 1;
-    while ((bytes_read = read(server_socket, buffer, sizeof(buffer))) > 0) {
-        if (first_time)
-        {
-            printf(buffer);
-            first_time = 0;
-        }
-        // printf("read one buff: %d bytes read\n", bytes_read);
-        send(client_socket, buffer, sizeof(buffer), 0);
-        if ( bytes_read <= 0 )
-            break;
+    int num_times = 0;
+    while ((bytes_read = recv(server_socket, proxy_buffer, BUFFER_SIZE, 0)) > 0) {
+        num_times += 1;
+        printf("%d (%d)\t", num_times, bytes_read);
+        send(client_socket, proxy_buffer, bytes_read, 0);
+        bzero(proxy_buffer, sizeof(proxy_buffer));
+        //memset(proxy_buffer, 0, sizeof(proxy_buffer));
     }
     printf("finished reading response\n");
     
