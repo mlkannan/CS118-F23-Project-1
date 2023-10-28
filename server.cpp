@@ -299,15 +299,24 @@ void proxy_remote_file(struct server_app *app, int client_socket, const std::str
 
     if(connect(server_socket, (struct sockaddr*) &remote_addr, sizeof(struct sockaddr)) == -1) {
         // perror (“connect”);
-        printf("i frew up :(");
-        exit (1);
+        // printf("i frew up :(");
+        char response[] = "HTTP/1.0 502 Bad Gateway\r\n\r\n";
+        send(client_socket, response, strlen(response), 0);
+        return;
     }
     printf("yeah we connected");
     
     // * Forward the original request to the remote server
 
+    // Proper request formatting.
+    std::string const tempFilename1 = std::regex_replace( request, std::regex( " " ), "\\%20" );
+    std::string const tempFilename2 = std::regex_replace( tempFilename1, std::regex( "%" ), "\\%25");
+
+    std::string request_with_header = "GET /" + tempFilename2 + " HTTP/1.1" + "\r\n\r\n";;
+
     char buffer[BUFFER_SIZE];
-    strcpy(buffer, request.c_str());
+    bzero(buffer, sizeof(buffer));
+    strcpy(buffer, request_with_header.c_str());
     write(server_socket, buffer, sizeof buffer);
     printf("it has been written");
     // char buffer[strlen(request)];
@@ -316,31 +325,50 @@ void proxy_remote_file(struct server_app *app, int client_socket, const std::str
     //     path_file.read(buffer, sizeof(buffer));
     //     send(client_socket, buffer, path_file.gcount(), 0);
     // }
-    printf("%d\n", sizeof buffer);
-    printf(buffer);
-    printf("\nbegin reading\n");
-    read(server_socket, buffer, sizeof buffer);
-    printf("finished reading response\n");
-    close(server_socket);
+        printf("%d\n", sizeof buffer);
+        printf(buffer);
 
     // * Pass the response from remote server back
 
-
     //HTTP HEADER OK BUT NEED TO FIX SENDING CONTENT
-    std::string status_code = "200 OK";
-    std:: string file_type = "application/octet-stream";
-    std::string status_line = "HTTP/1.1 " + status_code + "\r\n";
-    std::string content_length_str = "Content-Length: " + std::to_string(sizeof(buffer)) + "\r\n";
-    std::string content_type_str = "Content-Type: " + file_type + "\r\n";
+    // std::string status_code = "200 OK";
+    // std:: string file_type = "application/octet-stream";
+    // std::string status_line = "HTTP/1.1 " + status_code + "\r\n";
+    // // std::string content_length_str = "Content-Length: " + std::to_string(sizeof(buffer)) + "\r\n";
+    // std::string content_length_str = "Content-Length: " + std::to_string(1024) + "\r\n";
+    // std::string content_type_str = "Content-Type: " + file_type + "\r\n";
     
-    std::string response_headers = status_line + content_length_str + content_type_str + "\r\n";;
+    // std::string response_headers = status_line + content_length_str + content_type_str + "\r\n";
 
-    printf(response_headers.c_str());  
+    // bzero(buffer, sizeof(buffer));
+    // memset(buffer, 0, sizeof(buffer)); 
 
-    send(client_socket, response_headers.c_str(), response_headers.length(), 0);
-    send(client_socket, buffer, sizeof(buffer), 0);
+    //printf(response_headers.c_str());  
+
+    printf("\nbegin reading\n");
+    // printf("%d", read(server_socket, buffer, sizeof buffer));
+    
+
+    // send(client_socket, response_headers.c_str(), response_headers.length(), 0);
+    // send(client_socket, buffer, sizeof(buffer), 0);
+
+    int bytes_read;
+    bool first_time = 1;
+    while ((bytes_read = read(server_socket, buffer, sizeof(buffer))) > 0) {
+        if (first_time)
+        {
+            printf(buffer);
+            first_time = 0;
+        }
+        // printf("read one buff: %d bytes read\n", bytes_read);
+        send(client_socket, buffer, sizeof(buffer), 0);
+        if ( bytes_read <= 0 )
+            break;
+    }
+    printf("finished reading response\n");
+    
     //HTTP HEADER OK BUT NEED TO FIX SENDING CONTENT
-
+    close(server_socket);
 
     // Bonus:
     // * When connection to the remote server fail, properly generate
